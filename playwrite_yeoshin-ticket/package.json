@@ -1,0 +1,21 @@
+{
+  "name": "playwrite_yeoshin-ticket",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@playwright/test": "^1.53.0",
+    "@types/node": "^24.0.1"
+  },
+  "dependencies": {
+    "axios": "^1.10.0",
+    "dotenv": "^16.5.0",
+    "pg": "^8.16.2",
+    "playwright": "^1.53.1",
+    "playwright-json-summary-reporter": "^1.0.1"
+  }
+}
