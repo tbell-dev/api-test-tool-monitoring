@@ -51,7 +51,7 @@ export default function () {
 //      'Error API status is OK': (r) => r.status < 400,
 //    });
 //
-    sleep(1);
-  });
+//    sleep(1);
+//  });
 }
 
