@@ -1,0 +1,677 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 20,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {
+        "type": "influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.0.0",
+      "targets": [
+        {
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"playwright_result\" and r._field == \"duration\")\n  |> group(columns: [\"test_name\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield()",
+          "refId": "A"
+        }
+      ],
+      "title": "Test Duration by Test Name",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "cer6wvbc7gzr4d"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 0,
+        "y": 7
+      },
+      "id": 2,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": true
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.0.0",
+      "targets": [
+        {
+          "hide": false,
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart)\n  |> filter(fn: (r) => r._measurement == \"playwright_result\")\n  |> filter(fn: (r) => r[\"project\"] == \"chrome\")\n  |> filter(fn: (r) => r[\"status\"] == \"passed\")\n  |> group(columns: [])\n  |> aggregateWindow(every: v.windowPeriod, fn: count, createEmpty: false)\n  |> map(fn: (r) => ({ r with _value: r._value, label: \"Passed Count\" }))\n  |> last()",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "cer6wvbc7gzr4d"
+          },
+          "hide": false,
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart)\n  |> filter(fn: (r) => r._measurement == \"playwright_result\")\n  |> filter(fn: (r) => r[\"project\"] == \"chrome\")\n  |> filter(fn: (r) => r[\"status\"] == \"failed\")\n  |> group(columns: [])\n  |> aggregateWindow(every: v.windowPeriod, fn: count, createEmpty: false)\n  |> fill(column: \"_value\", value: 0)\n  |> map(fn: (r) => ({ r with _value: r._value, label: \"Failed Count\" }))\n  |> last()",
+          "refId": "B"
+        }
+      ],
+      "title": "[chrome] Test Result Count",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "cer6wvbc7gzr4d"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "displayName": "Total Passed/Failed Count",
+          "mappings": [],
+          "noValue": "0",
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "orange",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 85
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 14,
+        "w": 6,
+        "x": 6,
+        "y": 7
+      },
+      "id": 3,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.0.0",
+      "targets": [
+        {
+          "hide": false,
+          "query": "from(bucket: v.defaultBucket)\n   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"playwright_result\" and r[\"project\"] == \"chrome\" and r.status == \"passed\")\n |> group(columns: [])\n  |> aggregateWindow(every: v.windowPeriod, fn: count, createEmpty: true)\n  |> fill(column: \"_value\", value: 0)\n  |> sum()\n  |> map(fn: (r) => ({ r with value: r._value, label: \"Total Passed Count\" }))\n  |> keep(columns: [\"value\", \"label\"])",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "cer6wvbc7gzr4d"
+          },
+          "hide": false,
+          "query": "from(bucket: v.defaultBucket)\n   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"playwright_result\" and r[\"project\"] == \"chrome\" and r.status == \"failed\")\n |> group(columns: [])\n  |> aggregateWindow(every: v.windowPeriod, fn: count, createEmpty: true)\n  |> fill(column: \"_value\", value: 0)\n  |> sum()\n  |> map(fn: (r) => ({ r with value: r._value, label: \"Total Failed Count\" }))\n  |> keep(columns: [\"value\", \"label\"])",
+          "refId": "B"
+        }
+      ],
+      "title": "[chrome] Total Test Result",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "cer6wvbc7gzr4d"
+      },
+      "description": "firefox",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "noValue": "0",
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "orange",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 85
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 14,
+        "w": 6,
+        "x": 12,
+        "y": 7
+      },
+      "id": 7,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^value$/",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "value",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.0.0",
+      "targets": [
+        {
+          "query": "from(bucket: v.defaultBucket)\n   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"playwright_result\" and r[\"project\"] == \"firefox\" and r.status == \"passed\")\n |> group(columns: [])\n  |> aggregateWindow(every: v.windowPeriod, fn: count, createEmpty: true)\n  |> fill(column: \"_value\", value: 0)\n  |> sum()\n  |> map(fn: (r) => ({ r with value: r._value, label: \"Total Passed Count\" }))\n  |> keep(columns: [\"value\", \"label\"])",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "cer6wvbc7gzr4d"
+          },
+          "hide": false,
+          "query": "from(bucket: v.defaultBucket)\n   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"playwright_result\" and r[\"project\"] == \"firefox\" and r.status == \"failed\")\n |> group(columns: [])\n  |> aggregateWindow(every: v.windowPeriod, fn: count, createEmpty: true)\n  |> fill(column: \"_value\", value: 0)\n  |> sum()\n  |> map(fn: (r) => ({ r with value: r._value, label: \"Total Failed Count\" }))\n  |> keep(columns: [\"value\", \"label\"])",
+          "refId": "B"
+        }
+      ],
+      "title": "[firefox] Total Test Result",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "cer6wvbc7gzr4d"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "fieldMinMax": false,
+          "mappings": [],
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 0,
+        "y": 14
+      },
+      "id": 6,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": true
+        },
+        "showPercentChange": false,
+        "textMode": "value_and_name",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.0.0",
+      "targets": [
+        {
+          "hide": false,
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart)\n  |> filter(fn: (r) => r._measurement == \"playwright_result\")\n  |> filter(fn: (r) => r[\"project\"] == \"firefox\")\n  |> filter(fn: (r) => r[\"status\"] == \"passed\")\n  |> group(columns: [])\n  |> aggregateWindow(every: v.windowPeriod, fn: count, createEmpty: false)\n  |> map(fn: (r) => ({ r with _value: r._value, label: \"Passed Count\" }))\n  |> last()",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "cer6wvbc7gzr4d"
+          },
+          "hide": false,
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart)\n  |> filter(fn: (r) => r._measurement == \"playwright_result\")\n  |> filter(fn: (r) => r[\"project\"] == \"firefox\")\n  |> filter(fn: (r) => r[\"status\"] == \"failed\")\n  |> group(columns: [])\n  |> aggregateWindow(every: v.windowPeriod, fn: count, createEmpty: true)  // true로 변경\n  |> fill(column: \"_value\", value: 0)  // 빈 윈도우를 0으로 채움\n  |> map(fn: (r) => ({ r with _value: r._value, label: \"Failed Count\" }))\n  |> last()\n",
+          "refId": "B"
+        }
+      ],
+      "title": "[firefox] Test Result Count",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "cer6wvbc7gzr4d"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 25,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 18,
+        "x": 0,
+        "y": 21
+      },
+      "id": 9,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.0.0",
+      "targets": [
+        {
+          "hide": false,
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart)\n  |> filter(fn: (r) => r._measurement == \"playwright_result\")\n  |> filter(fn: (r) => r[\"project\"] == \"chrome\")\n  |> filter(fn: (r) => r[\"status\"] == \"passed\")\n  |> group(columns: [])\n  |> aggregateWindow(every: v.windowPeriod, fn: count, createEmpty: false)\n  |> map(fn: (r) => ({ r with _value: r._value, label: \"Passed Count\" }))",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "cer6wvbc7gzr4d"
+          },
+          "hide": false,
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart)\n  |> filter(fn: (r) => r._measurement == \"playwright_result\")\n  |> filter(fn: (r) => r[\"project\"] == \"chrome\")\n  |> filter(fn: (r) => r[\"status\"] == \"failed\")\n  |> group(columns: [])\n  |> aggregateWindow(every: v.windowPeriod, fn: count, createEmpty: false)\n  |> fill(column: \"_value\", value: 0)\n  |> map(fn: (r) => ({ r with _value: r._value, label: \"Failed Count\" }))\n",
+          "refId": "B"
+        }
+      ],
+      "title": "[chrome] Test Result Count",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "cer6wvbc7gzr4d"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 25,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 18,
+        "x": 0,
+        "y": 31
+      },
+      "id": 8,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "hidden",
+          "placement": "right",
+          "showLegend": false
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.0.0",
+      "targets": [
+        {
+          "hide": false,
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart)\n  |> filter(fn: (r) => r._measurement == \"playwright_result\")\n  |> filter(fn: (r) => r[\"project\"] == \"firefox\")\n  |> filter(fn: (r) => r[\"status\"] == \"passed\")\n  |> group(columns: [])\n  |> aggregateWindow(every: v.windowPeriod, fn: count, createEmpty: false)\n  |> map(fn: (r) => ({ r with _value: r._value, label: \"Passed Count\" }))",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "cer6wvbc7gzr4d"
+          },
+          "hide": false,
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart)\n  |> filter(fn: (r) => r._measurement == \"playwright_result\")\n  |> filter(fn: (r) => r[\"project\"] == \"firefox\")\n  |> filter(fn: (r) => r[\"status\"] == \"failed\")\n  |> group(columns: [])\n  |> aggregateWindow(every: v.windowPeriod, fn: count, createEmpty: false)\n  |> fill(column: \"_value\", value: 0)\n  |> map(fn: (r) => ({ r with _value: r._value, label: \"Failed Count\" }))\n",
+          "refId": "B"
+        }
+      ],
+      "title": "[firefox] Test Result Count",
+      "type": "timeseries"
+    }
+  ],
+  "preload": false,
+  "refresh": "5s",
+  "schemaVersion": 41,
+  "tags": [],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "text": "chromium",
+          "value": "chromium"
+        },
+        "description": "",
+        "name": "project",
+        "options": [
+          {
+            "selected": true,
+            "text": "chromium",
+            "value": "chromium"
+          },
+          {
+            "selected": false,
+            "text": "firefox",
+            "value": "firefox"
+          }
+        ],
+        "query": "chromium,firefox",
+        "type": "custom"
+      },
+      {
+        "current": {
+          "text": "failed",
+          "value": "failed"
+        },
+        "name": "status",
+        "options": [
+          {
+            "selected": false,
+            "text": "passed",
+            "value": "passed"
+          },
+          {
+            "selected": true,
+            "text": "failed",
+            "value": "failed"
+          }
+        ],
+        "query": "passed,failed",
+        "type": "custom"
+      },
+      {
+        "current": {
+          "text": "has title",
+          "value": "has title"
+        },
+        "definition": "import \"influxdata/influxdb/schema\"\n\nschema.tagValues(\n  bucket: v.defaultBucket,\n  tag: \"test_name\"\n)\n",
+        "description": "",
+        "name": "test_name_function",
+        "options": [],
+        "query": {
+          "query": "import \"influxdata/influxdb/schema\"\n\nschema.tagValues(\n  bucket: v.defaultBucket,\n  tag: \"test_name\"\n)\n"
+        },
+        "refresh": 1,
+        "regex": "",
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Playwright Test Results Dashboard",
+  "uid": "0e0c7254-9a7b-457e-b091-92b6b80fb5b7",
+  "version": 46
+}

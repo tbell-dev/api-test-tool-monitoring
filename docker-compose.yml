@@ -1,0 +1,69 @@
+services:
+  influxdb2:
+    image: influxdb:latest
+    container_name: influxdb2
+    ports:
+      - '8086:8086'
+    volumes:
+      - ./influx-data:/var/lib/influxdb2
+      - ./influx-config:/etc/influxdb2
+    networks:
+      - influx-grafana
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=${INFLUXDB2_USERNAME}
+      - DOCKER_INFLUXDB_INIT_PASSWORD=${INFLUXDB2_PASSWORD}
+      - DOCKER_INFLUXDB_INIT_ORG=${INFLUXDB2_ORG}
+      - DOCKER_INFLUXDB_INIT_BUCKET=${INFLUXDB2_BUCKET}
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${INFLUXDB2_TOKEN}
+    restart: always
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - '3005:3000'
+    volumes:
+      - ./grafana-storage:/var/lib/grafana
+      - ./grafana-provisioning:/etc/grafana/provisioning/
+    networks:
+      - influx-grafana
+    depends_on:
+      - influxdb2
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+
+  k6:
+    build: .
+    container_name: k6-test
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./k6-scripts:/scripts
+    working_dir: /scripts
+    environment:
+      - K6_OUT=xk6-influxdb=http://influxdb2:8086
+      - K6_INFLUXDB_ORGANIZATION=${INFLUXDB2_ORG}
+      - K6_INFLUXDB_BUCKET=${INFLUXDB2_BUCKET}
+      - K6_INFLUXDB_INSECURE=true
+      - K6_INFLUXDB_TOKEN=${INFLUXDB2_TOKEN}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - influx-grafana
+
+  postgre:
+    image: postgres
+    ports:
+      - '5432:5432'
+    container_name: postgres
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+
+networks:
+  influx-grafana:
